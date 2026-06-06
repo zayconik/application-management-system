@@ -73,14 +73,8 @@ We welcome contributions from our team members. To contribute, follow these step
 
 Progress Tracking
 
-We are using GitHub Projects to track the progress of our development. You can view the project board [here](https://github.com/users/gyannj/projects/1).
+We are using GitHub Projects to track the progress of our development.
 
 License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-Contact
-For any inquiries or issues, please contact gyanjyotidas677@gmail.com
-
-We are excited to work together on this project and build a robust application management system! Let's make this project a success.
-
-Happy coding!
