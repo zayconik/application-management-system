@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/mycomponents/Header";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/mycomponents/theme-provider";
+import { Toaster } from "sonner";
 import { dark } from "@clerk/themes";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -30,7 +31,7 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >  
-              {/* Toaster */}
+              <Toaster richColors closeButton />
 
               {/* Header */}
               <header className="border-b sticky">

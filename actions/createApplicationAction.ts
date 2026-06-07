@@ -3,9 +3,7 @@ import { IApplication } from "@/mongodb/models/application";
 import { IUser } from "@/mongodb/models/user";
 import { currentUser } from "@clerk/nextjs/server";
 import { Application } from "@/mongodb/models/application";
-import { randomUUID } from "crypto";
 import { revalidatePath } from "next/cache";
-import { auth } from '@clerk/nextjs/server';
 import connectDB from "@/mongodb/db";
 
 
@@ -17,56 +15,68 @@ export interface ApplicationSubmitBody {
     status: string;
 }
 
+function generateApplicationID() {
+    const prefix = 'AMSNITS';
+
+    // Get current timestamp in milliseconds (13 digits)
+    const timestamp = Date.now().toString();
+
+    // Generate a random number to fill in the remaining digits
+    const randomPart = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
+
+    // Combine the timestamp and random part to form the unique part (11 digits)
+    const uniquePart = timestamp.slice(-6) + randomPart;
+
+    // Combine with the prefix to form the full ID
+    const applicationID = prefix + uniquePart;
+
+    return applicationID;
+}
+
 async function createApplicationAction(formData: FormData){
     await connectDB();
-    const { sessionClaims } = auth();
     const user = await currentUser();
     if (!user) {
         throw new Error('You must be signed in to create an application');
     }
-    function generateApplicationID() {
-        const prefix = 'AMSNITS';
-      
-        // Get current timestamp in milliseconds (13 digits)
-        const timestamp = Date.now().toString();
-      
-        // Generate a random number to fill in the remaining digits
-        const randomPart = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-      
-        // Combine the timestamp and random part to form the unique part (11 digits)
-        const uniquePart = timestamp.slice(-6) + randomPart;
-      
-        // Combine with the prefix to form the full ID
-        const applicationID = prefix + uniquePart;
-      
-        return applicationID;
-      }
-      
+
+    const applicationTitle = (formData.get('apptitle') as string)?.trim();
+    const applicationDescription = (formData.get('appdescription') as string)?.trim() || "";
+
+    if (!applicationTitle) {
+        throw new Error('Please provide a title');
+    }
+
     const randomApplicationId = generateApplicationID();
-    const applicationTitle = formData.get('apptitle') as string;
-    const applicationDescription = formData.get('appdescription') as string;
     const status = 'pending';
+    const userEmail = user.emailAddresses?.[0]?.emailAddress || user.primaryEmailAddress?.emailAddress || "";
+
     const userDB: IUser = {
         userId: user.id,
-        firstName:user.firstName || "",
-        lastName:user.lastName || "",
-        email: sessionClaims?.email || ""
-        
+        firstName: user.firstName || "User",
+        lastName: user.lastName || "",
+        email: userEmail
+
       }
     try {
-        const body = {
+        const body: IApplication = {
             user: userDB,
             title: applicationTitle,
             description: applicationDescription,
             applicationId: randomApplicationId,
-            status: status
+            status: status,
+            createdAt: new Date(),
         }
         await Application.create(body);
+        revalidatePath('/');
+        revalidatePath('/status');
+        return { success: true, applicationId: randomApplicationId };
 
     } catch (error) {
-        console.log("Failed to Create Application in createApplicationAction", error)
+        console.error("Failed to Create Application in createApplicationAction", error);
+        const message = error instanceof Error ? error.message : 'Failed to create application';
+        throw new Error(message);
     }
-    revalidatePath('/')
 }
 
 export default createApplicationAction

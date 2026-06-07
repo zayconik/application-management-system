@@ -1,6 +1,5 @@
 "use client";
-import { useUser } from "@clerk/nextjs";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,26 +18,25 @@ import { useRouter } from "next/navigation";
 
 export function DialogForm() {
   const ref = useRef<HTMLFormElement>(null);
-  const user = useUser();
   const router = useRouter();
 
   const handlePostAction = async (formData: FormData) => {
-    const formDataCopy = formData;
-    ref?.current?.reset();
-
-    const title = formDataCopy.get("apptitle") as string;
-    const description = formDataCopy.get("appdescription") as string;
-    // const name = formDataCopy.get("name") as string;
+    const title = (formData.get("apptitle") as string) || "";
+    const description = (formData.get("appdescription") as string) || "";
 
     if (!title.trim() || !description.trim() ) {
       throw new Error("Please fill all the fields");
     }
 
     try {
-      await createApplicationAction(formDataCopy);
+      const result = await createApplicationAction(formData);
+      ref?.current?.reset();
       router.push("/status"); // Redirect after successful submission
+      return result;
     } catch (error) {
-      console.log(`Failed to Create Application ${error}`);
+      console.error("Failed to Create Application:", error);
+      const message = error instanceof Error ? error.message : "Failed to create application";
+      throw new Error(message);
     }
   };
 
@@ -62,13 +60,14 @@ export function DialogForm() {
 
         <form
           ref={ref}
-          action={(formData) => {
-            const promise = handlePostAction(formData);
-            toast.promise(promise, {
-              loading: "Submitting Application....",
-              success: "Application Submitted Successfully",
-              error: "Failed to Submit Application",
-            });
+          action={async (formData) => {
+            try {
+              await handlePostAction(formData);
+              toast.success("Application Submitted Successfully");
+            } catch (error) {
+              const message = error instanceof Error ? error.message : "Failed to Submit Application";
+              toast.error(message);
+            }
           }}
         >
           <div className="grid gap-4 py-4">
