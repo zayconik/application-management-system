@@ -111,15 +111,17 @@ ApplicationSchema.statics.findApplicationsByUserId = async function(userId: stri
 
 ApplicationSchema.statics.getAllApplications = async function() {
     try {
-        const applications= await this.find().populate('user').sort({createdAt: -1}).lean();
+        const applications = await this.find().sort({ createdAt: -1 }).lean();
 
-        return applications.map((application: IApplicationDocument) =>( {
+        return applications.map((application: IApplicationDocument) => ({
             ...application,
-            // _id: application._id.toString(),
-
         }));
     } catch (error) {
-        
+        if (error instanceof Error) {
+            throw new Error(`Error fetching applications: ${error.message}`);
+        } else {
+            throw new Error('Unknown error occurred while fetching applications');
+        }
     }
 }
 

@@ -29,6 +29,12 @@ To get started with the development environment, follow these steps:
    ```
    npm install
    ```
+
+**Configure environment variables:**
+
+Copy `.env.example` to `.env.local` and fill in your Clerk and MongoDB credentials.
+See [docs/MONGODB_SETUP.md](docs/MONGODB_SETUP.md) for MongoDB Atlas setup.
+
 **Run the development server:**
   ```
   npm run dev

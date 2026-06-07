@@ -19,6 +19,37 @@ export type CustomColumnDef<T> = ColumnDef<T> & {
   isAdmin?: boolean;
 };
 
+function DescriptionCell({ description }: { description: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div>
+      <div
+        style={{
+          display: 'block',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: isExpanded ? 'normal' : 'nowrap',
+          maxWidth: '200px', // Adjust width as needed
+        }}
+      >
+        {description}
+      </div>
+      {description.length > 100 && ( // Adjust length as needed
+        <Button
+          variant="link"
+          className={`mt-2 text-blue-600 hover:underline transition-all duration-300 ${
+            isExpanded ? 'text-blue-800' : ''
+          }`}
+          onClick={() => setIsExpanded(!isExpanded)}
+        >
+          {isExpanded ? 'Show less' : 'Show more'}
+        </Button>
+      )}
+    </div>
+  );
+}
+
 export const columnsuser: CustomColumnDef<IApplicationDocument>[] = [
   {
     accessorKey: "applicationId",
@@ -40,37 +71,9 @@ export const columnsuser: CustomColumnDef<IApplicationDocument>[] = [
   {
     accessorKey: "description",
     header: "Description",
-    cell: ({ row }) => {
-      const [isExpanded, setIsExpanded] = useState(false);
-      const description = row.getValue("description") as string;
-
-      return (
-        <div>
-          <div
-            style={{
-              display: 'block',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: isExpanded ? 'normal' : 'nowrap',
-              maxWidth: '200px', // Adjust width as needed
-            }}
-          >
-            {description}
-          </div>
-          {description.length > 100 && ( // Adjust length as needed
-            <Button
-              variant="link"
-              className={`mt-2 text-blue-600 hover:underline transition-all duration-300 ${
-                isExpanded ? 'text-blue-800' : ''
-              }`}
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
-              {isExpanded ? 'Show less' : 'Show more'}
-            </Button>
-          )}
-        </div>
-      );
-    },
+    cell: ({ row }) => (
+      <DescriptionCell description={row.getValue("description") as string} />
+    ),
   },
   {
     accessorKey: "createdAt",
